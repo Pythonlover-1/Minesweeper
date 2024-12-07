@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['dist\\minesweeper_game.py'],
+    ['gamefiles\\minesweeper_game.py'],
     pathex=[],
     binaries=[],
     datas=[],
