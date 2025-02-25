@@ -29,6 +29,12 @@ class MinesweeperMainMenu(QMainWindow):
         self.setFixedSize(500, 800)
         uic.loadUi("./uifiles/minesweeper_main_menu.ui", self)
 
+        '''
+        Не буду дублировать это замечание далее, скажу с самого начала:
+        Зачем тут CAPS? :)
+        Если хотелось сделать константу, надо было вынести из тела метода,
+        иначе не называть переменную CAPS'ом
+        '''
         PALETTE = self.palette()
         PIXMAP = QPixmap("./pictures/background_picture1.png")
         PALETTE.setBrush(QPalette.ColorRole.Window, QBrush(PIXMAP))
@@ -121,6 +127,12 @@ class MinesweeperMainMenu(QMainWindow):
 
         self.hide()
 
+        '''
+        Опять же, скажу один раз тут, но это относится ко всем подобным конструкциям далее
+        Добавлять атрибуты класса прямо во время исполнения -- плохая практика. 
+        Я бы задавал для MINESWEEPER_PEOPLES (вопрос почему оно названо СAPS'ом остаётся) 
+        какое-нибудь дефолтное значение при создании объекта
+        '''
         if not hasattr(self, "minesweeper_peoples"):
             self.MINESWEEPER_PEOPLES = MinesweeperPeoples()
         self.MINESWEEPER_PEOPLES.open_window(frame_x, frame_y)
@@ -278,6 +290,11 @@ class MinesweeperSettings(QMainWindow):
 
         game_difficulty, game_mode, clue = RESULT[0]
 
+        '''
+        :NOTE:
+         Лично я вынес бы проставление "галочек" на кнопках в отдельную функцию,
+         но так тоже можно
+        '''
         BUTTON_GROUP = [
             self.game_difficulty_group,
             self.game_mode_group,
@@ -300,7 +317,7 @@ class MinesweeperSettings(QMainWindow):
         CON = sqlite3.connect("minesweeper.sqlite")
         CUR = CON.cursor()
 
-        clue = self.clue_group.checkedButton().text()
+        clue = self.clue_group.checkedButton().text()  # неиспользуемая переменная
 
         CUR.execute(
             """
@@ -322,6 +339,20 @@ class MinesweeperSettings(QMainWindow):
 
         CON.commit()
         CON.close()
+
+    '''
+    Эта функция -- сплошная copy-paste.
+    Следовало вынести 
+
+    if <какая-то radiobutton>.isChecked():
+        <какая-то radiobutton>.setIcon(QIcon("./pictures/dot2.png"))
+        <вторая radiobutton>.setIcon(QIcon("./pictures/dot1.png"))
+    else:
+        <какая-то radiobutton>.setIcon(QIcon("./pictures/dot1.png"))
+        <вторая radiobutton>.setIcon(QIcon("./pictures/dot2.png"))
+
+    в отдельную функцию (возможно переписал бы эту конструкцию) и вызывать для нужных кнопок
+    '''
 
     def on_radio_button_toggled(self):
         if self.beginner_radiobutton.isChecked():
@@ -568,12 +599,13 @@ class MinesweeperGame(QMainWindow):
         SETTINGS_FOR_START_THE_GAME = {
             "Beginner": [5, 4],
             "Professional": [10, 16],
-        }
+        }  # это какая-то константа, не стоило делать её локальной переменной
 
         self.field_size_and_count_mines = SETTINGS_FOR_START_THE_GAME[game_difficulty]
 
         self.COUNT_MINES = self.field_size_and_count_mines[1]
 
+        # copy-paste, нужно было вынести генерацию поля в отдельную переменную
         self.revealed = [
             [False for _ in range(self.field_size_and_count_mines[0])]
             for _ in range(self.field_size_and_count_mines[0])
@@ -595,9 +627,9 @@ class MinesweeperGame(QMainWindow):
         self.buttons = []
         self.flags_positions = []
 
-        for i in range(self.field_size_and_count_mines[0]):
+        for i in range(self.field_size_and_count_mines[0]):  # :NOTE: можно _ вместо i (всё равно не исползуется)
             row_buttons = []
-            for j in range(self.field_size_and_count_mines[0]):
+            for j in range(self.field_size_and_count_mines[0]):  # :NOTE: аналогично можно _ вместо j
                 button = QPushButton(self)
 
                 font = QFont("Arial Black", 11)
@@ -784,7 +816,7 @@ class MinesweeperGame(QMainWindow):
             self.game_win_over_label.setText("You have lost")
             self.show_mines()
 
-    def choose_size(self):
+    def choose_size(self):  # почему бы не сделать тернарник?
         if self.get_data_from_sqlite()[0][0] == "Beginner":
             return 100
         else:
@@ -804,7 +836,7 @@ class MinesweeperGame(QMainWindow):
         )
         con.commit()
 
-    def get_user_name(self):
+    def get_user_name(self):  # :NOTE: можно было сделать @staticmethod
         while True:
             name, ok = QInputDialog.getText(QWidget(), "Введите ваше имя", "Ваше имя:")
             if ok and name:
@@ -843,12 +875,12 @@ class MinesweeperGame(QMainWindow):
         ).fetchall()
         return RESULT
 
-    def get_data_from_table(self):
+    def get_data_from_table(self):  # :NOTE: можно было сделать @staticmethod
         with open("achievements.csv", "r", encoding="utf8") as csvfile:
             result = list(csv.reader(csvfile, delimiter=";", quotechar='"'))
             return [result[0][1], result[1][1], result[2][1], result[3][1]]
 
-    def write_data_to_table(self, lst):
+    def write_data_to_table(self, lst):  # :NOTE: можно было сделать @staticmethod
         with open("achievements.csv", "w", newline="", encoding="utf8") as csvfile:
             writer = csv.writer(
                 csvfile, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL
@@ -898,7 +930,7 @@ class MinesweeperGame(QMainWindow):
                     """
             )
 
-    def count_true(self, lst):
+    def count_true(self, lst):  # :NOTE: можно было сделать @staticmethod
         count = 0
         for sublist in lst:
             for item in sublist:
@@ -911,6 +943,7 @@ class MinesweeperGame(QMainWindow):
         self.install_flag_button.setEnabled(False)
         self.first_move = True
         self.MINES_POSITIONS, self.clues_positions = [], []
+        # уже говорил про отдельную функцию для заполнения поля
         self.revealed = [
             [False for _ in range(self.field_size_and_count_mines[0])]
             for _ in range(self.field_size_and_count_mines[0])
@@ -980,6 +1013,12 @@ class MinesweeperGame(QMainWindow):
                 )
             self.flags[row][col] = not self.flags[row][col]
 
+    '''
+    Эту функцию можно было бы написать в 1 строку :)
+    def change_click_mode(self):
+        self.flag_setting_mode = not self.flag_setting_mode
+    '''
+
     def change_click_mode(self):
         if self.flag_setting_mode:
             self.flag_setting_mode = False
@@ -1004,6 +1043,11 @@ class MinesweeperGame(QMainWindow):
                     """
                 )
 
+    '''
+    Сомнительное решение, чтобы возвращаемое значение у функции было по типу Union[str, int].
+    Почему бы всегда не возвращать число и уже где-то дальше обрабатывать случай с 0?
+    '''
+
     def count_adjacent_mines(self, row, col):
         count = 0
         for r in range(
@@ -1025,6 +1069,8 @@ class MinesweeperGame(QMainWindow):
             for c in range(self.field_size_and_count_mines[0])
             if r != first_move_row or c != first_move_col
         ]
+        # :NOTE: в идеале было бы реализовать какой-нибудь алгоритм хитрее, чем обычный рандом
+        # P.S. при рандоме бывают "нерешаемые" случаи
         self.MINES_POSITIONS = random.sample(positions, self.COUNT_MINES)
         self.clues_positions = self.MINES_POSITIONS[:]
 
